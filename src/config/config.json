@@ -1,0 +1,15 @@
+{
+    "server": {
+        "port": 8081
+    },
+    "database": {
+        "host": "localhost",
+        "user": "root",
+        "password": "211912daniel",
+        "database": "aerolinea",
+        "waitForConnections": true,
+        "connectionLimit": 10,
+        "queueLimit": 0
+    }
+}
+
