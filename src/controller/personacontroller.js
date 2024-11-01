@@ -1,13 +1,15 @@
 //personacontroller.js
 const model = require ('../model/personamodel');
+const { validarpersona, validarcampos } = require('../middleware/validarpersona');
+const { actualizarpersonavalidada, validaractualizacionpersona } = require('../middleware/validaractualizacion');
 
 const express = require('express');
 const router = express.Router();
 
 router.get('/', listar_persona);
 router.get('/:dni', buscarPorDni);
-router.post('/', crear_persona);
-router.put('/:dni', actualizar_persona);
+router.post('/', validarpersona(), validarcampos, crear_persona);
+router.put('/:dni', actualizarpersonavalidada(), validaractualizacionpersona, actualizar_persona);
 router.delete('/:dni', eliminar_persona);
 
 // Listar todas las personas
@@ -16,12 +18,12 @@ router.delete('/:dni', eliminar_persona);
 
 async function listar_persona(req, res) {
     console.log('Listar personas');  
-    try {
+   try {
         const results = await model.findAll();
-        res.status(200).json(results);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+         res.status(200).json(results);
+     } catch (err) {
+         res.status(500).json({ error: err.message });
+     }
 }
 
 // Buscar persona por DNI
