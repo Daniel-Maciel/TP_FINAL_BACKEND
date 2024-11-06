@@ -1,5 +1,7 @@
 //usuariocontroller.js
 const model = require ('../model/usuariomodel');
+const { validacionusuario, validarusuario } = require('../middleware/validarusuario');
+const { actualizarusuariovalidado, validarusuarioactualizado } = require('../middleware/validarusuarioactualizado');
 
 const express = require('express');
 const router = express.Router();
@@ -10,8 +12,8 @@ const saltRounds = 10;  // Define el número de rondas para bcrypt
 // Rutas del controlador
 router.get('/', listar_usuario);
 router.get('/:id_usuario', buscarPorId);
-router.post('/', crear_usuario);
-router.put('/:id_usuario', actualizar_usuario);
+router.post('/', validacionusuario(), validarusuario, crear_usuario);
+router.put('/:id_usuario', actualizarusuariovalidado(), validarusuarioactualizado, actualizar_usuario);
 router.delete('/:id_usuario', eliminar_usuario);
 
 // Listar todos los usuarios

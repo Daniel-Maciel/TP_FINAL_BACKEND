@@ -1,7 +1,7 @@
 //personacontroller.js
 const model = require ('../model/personamodel');
 const { validarpersona, validarcampos } = require('../middleware/validarpersona');
-const { actualizarpersonavalidada, validaractualizacionpersona } = require('../middleware/validaractualizacion');
+const { actualizarpersonavalidada, validaractualizacionpersona } = require('../middleware/validarpersonaactualizada');
 
 const express = require('express');
 const router = express.Router();
