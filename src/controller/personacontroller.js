@@ -13,8 +13,6 @@ router.put('/:dni', actualizarpersonavalidada(), validaractualizacionpersona, ac
 router.delete('/:dni', eliminar_persona);
 
 // Listar todas las personas
-// Ruta para obtener todas las personas
-
 
 async function listar_persona(req, res) {
     console.log('Listar personas');  

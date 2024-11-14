@@ -15,6 +15,7 @@ router.get('/:id_usuario', buscarPorId);
 router.post('/', validacionusuario(), validarusuario, crear_usuario);
 router.put('/:id_usuario', actualizarusuariovalidado(), validarusuarioactualizado, actualizar_usuario);
 router.delete('/:id_usuario', eliminar_usuario);
+router.post('/login', login);
 
 // Listar todos los usuarios
 async function listar_usuario(req, res) {
@@ -93,6 +94,33 @@ async function eliminar_usuario(req, res) {
         res.status(200).json(result);
     } catch (error) {
         res.status(404).json({ error: error.message });
+    }
+}
+
+// Crear el login de un usuario
+async function login(req, res) {
+    try {
+        const { mail, pass } = req.body;
+        const [result] = await model.findByMail(mail);
+        const iguales = bcrypt.compareSync(pass, result.pass);
+        if (iguales) {
+            let user = {
+                nombre: result.nombre,
+                apellido: result.apellido,
+                mail: result.mail
+            }
+            jwt.sign(user, 'ultraMegaSecretPass', { expiresIn: '10000s' }, (err, token) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                } else {
+                    res.status(200).json({ datos: user, token: token });
+                }
+            })
+        } else {
+            res.status(403).send({ message: 'Contraseña Incorrecta' });
+        }
+    } catch (error) {
+        res.status(500).send({ message: error.message });
     }
 }
 
