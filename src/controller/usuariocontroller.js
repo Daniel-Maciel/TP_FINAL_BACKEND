@@ -3,6 +3,7 @@ const model = require ('../model/usuariomodel');
 const { validacionusuario, validarusuario } = require('../middleware/validarusuario');
 const { actualizarusuariovalidado, validarusuarioactualizado } = require('../middleware/validarusuarioactualizado');
 
+const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
 
@@ -101,24 +102,41 @@ async function eliminar_usuario(req, res) {
 async function login(req, res) {
     try {
         const { mail, pass } = req.body;
+
+        // Buscar usuario por correo
         const [result] = await model.findByMail(mail);
-        const iguales = bcrypt.compareSync(pass, result.pass);
-        if (iguales) {
-            let user = {
-                nombre: result.nombre,
-                apellido: result.apellido,
-                mail: result.mail
-            }
-            jwt.sign(user, 'ultraMegaSecretPass', { expiresIn: '10000s' }, (err, token) => {
-                if (err) {
-                    res.status(500).send({ message: err });
-                } else {
-                    res.status(200).json({ datos: user, token: token });
-                }
-            })
-        } else {
-            res.status(403).send({ message: 'Contraseña Incorrecta' });
+
+        // Verificar si existe el usuario
+        if (!result) {
+            return res.status(404).send({ message: 'Usuario no encontrado' });
         }
+
+        // Verificar contraseña
+        const iguales = bcrypt.compareSync(pass, result.pass);
+        if (!iguales) {
+            return res.status(403).send({ message: 'Contraseña incorrecta' });
+        }
+
+        // Datos del usuario
+        const user = {
+            nombre: result.nombre,
+            apellido: result.apellido,
+            mail: result.mail
+        };
+
+        // Clave secreta para JWT
+        const secretKey = process.env.JWT_SECRET || 'ultraMegaSecretPass';
+
+        // Generar token
+        jwt.sign(user, secretKey, { expiresIn: '10000s' }, (err, token) => {
+            if (err) {
+                return res.status(500).send({ message: 'Error generando el token de autenticación' });
+            }
+
+            // Enviar respuesta con datos del usuario y token
+            res.status(200).json({ datos: user, token });
+        });
+
     } catch (error) {
         res.status(500).send({ message: error.message });
     }

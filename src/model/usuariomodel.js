@@ -25,21 +25,25 @@ const Usuario = {
     },
 
     //busqueda por mail 
-    findByMail: async (mail) => {
+    findByMail: async (email) => {
 
         try {
-            const consulta = `SELECT p.nombre, p.apellido, u.mail, u.pass
-                                FROM usuario u INNER JOIN persona p ON u.persona_id = p.dni AND u.mail = ?`;
-            const [result] = await db.execute(consulta, [mail]);
-
-
+            // Consulta corregida para hacer el JOIN correctamente
+            const consulta = `
+                SELECT u.email, u.pass, p.nombre, p.apellido
+                FROM Usuario u
+                JOIN Persona p ON u.dni = p.dni
+                WHERE u.email = ?`;
+    
+            // Ejecutar la consulta
+            const [result] = await db.execute(consulta, [email]);
+    
             if (result.length == 0) {
-                throw new Error(`Usuario no encontrado con el mail : ${mail}`);
+                throw new Error(`Usuario no encontrado con el mail: ${email}`);
             }
-
+    
+            // Si la consulta es exitosa, se devuelve el resultado
             return result;
-            //si no saltó el error en el if anterior entoces se devuelve el resultado
-
         } catch (error) {
             throw new Error(error.message);
         }
