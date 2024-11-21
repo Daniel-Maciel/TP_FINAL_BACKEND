@@ -1,5 +1,6 @@
 //usuariocontroller.js
 const model = require ('../model/usuariomodel');
+const model2 = require ('../model/personamodel');
 const { validacionusuario, validarusuario } = require('../middleware/validarusuario');
 const { actualizarusuariovalidado, validarusuarioactualizado } = require('../middleware/validarusuarioactualizado');
 
@@ -17,6 +18,7 @@ router.post('/', validacionusuario(), validarusuario, crear_usuario);
 router.put('/:id_usuario', actualizarusuariovalidado(), validarusuarioactualizado, actualizar_usuario);
 router.delete('/:id_usuario', eliminar_usuario);
 router.post('/login', login);
+router.post('/register', registrar_usuario);
 
 // Listar todos los usuarios
 async function listar_usuario(req, res) {
@@ -100,6 +102,7 @@ async function eliminar_usuario(req, res) {
 
 // Crear el login de un usuario
 async function login(req, res) {
+    console.log('Ingreso con login'); 
     try {
         const { mail, pass } = req.body;
 
@@ -141,5 +144,29 @@ async function login(req, res) {
         res.status(500).send({ message: error.message });
     }
 }
+
+async function registrar_usuario(req, res) {
+    console.log('Registrar usuario');
+    const { dni, nombre, apellido, direccion, telefono, email, pass, id_rol } = req.body;
+
+    try {
+        // Hash de la contraseña
+        const hashedPass = await bcrypt.hash(pass, 10);
+
+        // Crear Persona
+        console.log('Creando persona...');
+        await personamodel.create(dni, nombre, apellido, direccion, telefono);
+
+        // Crear Usuario
+        console.log('Creando usuario...');
+        await usuariomodel.create(id_rol, dni, email, hashedPass);
+
+        res.status(201).json({ message: 'Usuario registrado exitosamente' });
+    } catch (error) {
+        console.error('Error al registrar el usuario:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
 
 module.exports = router;
