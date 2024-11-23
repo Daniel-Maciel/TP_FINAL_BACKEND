@@ -1,6 +1,8 @@
 //usuariocontroller.js
-const model = require ('../model/usuariomodel');
-const model2 = require ('../model/personamodel');
+// const model = require ('../model/usuariomodel');
+// const model = require ('../model/personamodel');
+const personamodel = require('../model/personamodel'); // Cambia a un nombre específico
+const usuariomodel = require('../model/usuariomodel'); 
 const { validacionusuario, validarusuario } = require('../middleware/validarusuario');
 const { actualizarusuariovalidado, validarusuarioactualizado } = require('../middleware/validarusuarioactualizado');
 
@@ -149,15 +151,16 @@ async function registrar_usuario(req, res) {
     console.log('Registrar usuario');
     const { dni, nombre, apellido, direccion, telefono, email, pass, id_rol } = req.body;
 
+    if (!dni || !nombre || !apellido || !direccion || !telefono || !email || !pass || !id_rol) {
+        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
     try {
-        // Hash de la contraseña
         const hashedPass = await bcrypt.hash(pass, 10);
 
-        // Crear Persona
         console.log('Creando persona...');
         await personamodel.create(dni, nombre, apellido, direccion, telefono);
 
-        // Crear Usuario
         console.log('Creando usuario...');
         await usuariomodel.create(id_rol, dni, email, hashedPass);
 

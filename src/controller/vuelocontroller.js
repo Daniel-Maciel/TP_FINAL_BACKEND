@@ -2,6 +2,7 @@
 const Vuelo = require('../model/vuelomodel');
 const express = require('express');
 const router = express.Router();
+const { Op } = require( "sequelize")
 
 // Rutas del controlador
 router.get('/', listar_vuelo);
@@ -10,25 +11,57 @@ router.post('/', crear_vuelo);
 router.put('/:id_vuelo', actualizar_vuelo);
 router.delete('/:id_vuelo', eliminar_vuelo);
 
-// Listar todos los vuelos
+// // Listar todos los vuelos
+// async function listar_vuelo(req, res) {
+//     console.log('listar vuelos'); 
+//     try {
+//         const vuelos = await Vuelo.findAll();
+//         res.status(200).json(vuelos);
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// }
+
 async function listar_vuelo(req, res) {
-    console.log('listar vuelos'); 
+    console.log('Parametros recibidos:', req.query); // Verifica los parámetros
+
+    const { origen, destino, fechaSalida } = req.query;
+
+    const filtros = {};
+
+    if (origen) {
+        filtros.origen = origen;
+    }
+    if (destino) {
+        filtros.destino = destino;
+    }
+    if (fechaSalida) {
+        filtros.fechaSalida = fechaSalida;
+    }
+
     try {
-        const vuelos = await Vuelo.findAll();
+        const vuelos = await Vuelo.findAll(filtros); // Llama a la función findAll con los filtros
+        if (vuelos.length === 0) {
+            return res.status(404).json({ message: 'No se encontraron vuelos con los parámetros especificados' });
+        }
         res.status(200).json(vuelos);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: error.message });
     }
 }
 
 // Buscar vuelo por ID
 async function buscarPorId(req, res) {
-    console.log('buscar vuelos por id'); 
+    console.log('Parámetro recibido en buscarPorId:', req.params);
     const { id_vuelo } = req.params;
+    
     try {
         const vuelo = await Vuelo.findById(id_vuelo);
+        console.log('Resultado de búsqueda:', vuelo);
         res.status(200).json(vuelo);
     } catch (error) {
+        console.error('Error en buscarPorId:', error.message);
         res.status(404).json({ error: error.message });
     }
 }
@@ -83,3 +116,4 @@ async function eliminar_vuelo(req, res) {
 }
 
 module.exports = router;
+
