@@ -16,7 +16,13 @@ const Usuario = {
     // Obtener todos los usuarios
     findAll: async () => {
         try {
-            const query = 'SELECT * FROM USUARIO';
+            const query = `
+                SELECT 
+                    id_usuario, 
+                    email, 
+                    fecha_registro, 
+                    id_rol 
+                FROM USUARIO`;
             const [rows] = await db.execute(query);
             return rows;
         } catch (error) {
@@ -24,31 +30,30 @@ const Usuario = {
         }
     },
 
-    //busqueda por mail 
+    // Buscar usuario por email model
     findByMail: async (email) => {
-
         try {
-            // Consulta corregida para hacer el JOIN correctamente
             const consulta = `
-                SELECT u.email, u.pass, p.nombre, p.apellido
+                SELECT u.id_rol, u.email, u.pass, p.nombre, p.apellido
                 FROM Usuario u
                 JOIN Persona p ON u.dni = p.dni
                 WHERE u.email = ?`;
     
-            // Ejecutar la consulta
-            const [result] = await db.execute(consulta, [email]);
+            const [rows] = await db.execute(consulta, [email]);
+            console.log('Resultado de db.execute:', rows);
     
-            if (result.length == 0) {
-                throw new Error(`Usuario no encontrado con el mail: ${email}`);
+            if (!rows || rows.length === 0) {
+                throw new Error(`Usuario no encontrado con el email: ${email}`);
             }
     
-            // Si la consulta es exitosa, se devuelve el resultado
-            return result;
+            return rows[0]; // Devolver el primer usuario encontrado
         } catch (error) {
+            console.error('Error en findByMail:', error.message);
             throw new Error(error.message);
         }
     },
-
+    
+ 
     // Buscar usuario por ID
     findById: async (id_usuario) => {
         const query = 'SELECT * FROM USUARIO WHERE id_usuario = ?';

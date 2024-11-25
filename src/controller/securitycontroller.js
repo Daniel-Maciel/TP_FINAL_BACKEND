@@ -1,3 +1,4 @@
+//securitycontroller.js
 const express = require('express');
 const router = express.Router();
 var model = require('../model/usuariomodel');
@@ -9,19 +10,24 @@ router.post('/login', login);
 
 async function login(req, res) {
     try {
-        const { mail, pass } = req.body;
-        const [result] = await model.findByMail(mail);
+        console.log('Petición de login recibida:', req.body);
 
-        const iguales = bcrypt.compareSync(pass, result.pass);
+        const { mail, pass } = req.body;
+        const user = await model.findByMail(mail);
+        console.log('Resultado del modelo:', user);
+
+        const iguales = bcrypt.compareSync(pass, user.pass);
 
         if (iguales) {
-            let user = {
-                nombre: result.nombre,
-                apellido: result.apellido,
-                mail: result.mail
+            console.log('Contraseña válida, generando token...');
+            const payload = {
+                nombre:user.nombre,
+                apellido: user.apellido,
+                mail: user.email,
+                id_rol: user.id_rol, // Asegúrate de agregar id_rol aquí
             }
             //firmar usuario
-            jwt.sign(user, 'ultraMegaSecretPass', { expiresIn: '5m' }, (err, token) => {
+            jwt.sign(payload, 'ultraMegaSecretPass', { expiresIn: '5m' }, (err, token) => {
                 if (err) {
                     res.status(500).send({
                         message: err
@@ -29,18 +35,20 @@ async function login(req, res) {
                 } else {
                     res.status(200).json(
                         {
-                            datos: user,
+                            datos: payload,
                             token: token
                         }
                     );
                 }
             })
         } else {
+            console.log('Contraseña incorrecta');
             res.status(403).send({
                 message: 'Contraseña Incorrecta'
             });
         }
     } catch (error) {
+        console.error('Error en login:', error.message);
         res.status(500).send({ message: error.message });
     }
 }

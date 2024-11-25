@@ -26,7 +26,7 @@ router.post('/register', registrar_usuario);
 async function listar_usuario(req, res) {
     console.log('Listar usuarios'); 
     try {
-        const usuarios = await model.findAll();  
+        const usuarios = await usuariomodel.findAll();  
         res.status(200).json(usuarios);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -38,7 +38,7 @@ async function buscarPorId(req, res) {
     console.log('buscar usuario por id'); 
     const { id_usuario } = req.params;
     try {
-        const usuario = await model.findById(id_usuario);  
+        const usuario = await usuariomodel.findById(id_usuario);  
         res.status(200).json(usuario);
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -60,7 +60,7 @@ async function crear_usuario(req, res) {
         const hashedPass = await bcrypt.hash(pass, saltRounds);
 
         // Crear el usuario con la contraseña hasheada
-        const result = await model.create(id_rol || 1, dni, email, hashedPass);  
+        const result = await usuariomodel.create(id_rol || 1, dni, email, hashedPass);  
         res.status(201).json(result);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -83,7 +83,7 @@ async function actualizar_usuario(req, res) {
         const hashedPass = await bcrypt.hash(pass, saltRounds);
 
         // Actualizar el usuario con la nueva contraseña hasheada
-        const result = await model.update(id_usuario, id_rol || 1, dni, email, hashedPass);  
+        const result = await usuariomodel.update(id_usuario, id_rol || 1, dni, email, hashedPass);  
         res.status(200).json(result);
     } catch (error) {
         res.status(404).json({ error: error.message });
@@ -95,26 +95,21 @@ async function eliminar_usuario(req, res) {
     console.log('eliminar usuario'); 
     const { id_usuario } = req.params;
     try {
-        const result = await model.delete(id_usuario);  
+        const result = await usuariomodel.delete(id_usuario);  
         res.status(200).json(result);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
 }
 
-// Crear el login de un usuario
+// Login de un usuario controller
 async function login(req, res) {
-    console.log('Ingreso con login'); 
+    console.log('Ingreso con login');
     try {
         const { mail, pass } = req.body;
 
         // Buscar usuario por correo
-        const [result] = await model.findByMail(mail);
-
-        // Verificar si existe el usuario
-        if (!result) {
-            return res.status(404).send({ message: 'Usuario no encontrado' });
-        }
+        const result = await usuariomodel.findByMail(mail);
 
         // Verificar contraseña
         const iguales = bcrypt.compareSync(pass, result.pass);
@@ -126,26 +121,32 @@ async function login(req, res) {
         const user = {
             nombre: result.nombre,
             apellido: result.apellido,
-            mail: result.mail
+            mail: result.email,
+            //id_rol: result.id_rol, // Asegúrate de agregar id_rol aquí
         };
 
         // Clave secreta para JWT
         const secretKey = process.env.JWT_SECRET || 'ultraMegaSecretPass';
+        console.log('Clave secreta JWT:', process.env.JWT_SECRET);
+
 
         // Generar token
         jwt.sign(user, secretKey, { expiresIn: '10000s' }, (err, token) => {
             if (err) {
+                console.error('Error generando el token:', err);
                 return res.status(500).send({ message: 'Error generando el token de autenticación' });
             }
+            console.log('Token generado:', token);
 
             // Enviar respuesta con datos del usuario y token
-            res.status(200).json({ datos: user, token });
+            res.status(200).json({ datos: user,  token: token });
         });
-
     } catch (error) {
+        console.error('Error en login:', error.message);
         res.status(500).send({ message: error.message });
     }
 }
+
 
 async function registrar_usuario(req, res) {
     console.log('Registrar usuario');
